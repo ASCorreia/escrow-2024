@@ -69,15 +69,60 @@ describe("escrow", () => {
     const tx = await program.methods
     .make(seed, new anchor.BN(1_000_000), new anchor.BN(1_000_000))
     .accountsPartial({
-      maker: maker.publicKey,
-      mintA,
-      mintB,
-      makerAta: makerAtaA,
+      user: maker.publicKey,
+      mintAccountA: mintA,
+      mintAccountB: mintB,
       escrow,
-      vault,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      makerAta: makerAtaA,
+      makerVault: vault,
       systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+    })
+    .signers([maker])
+    .rpc();
+    console.log("Your transaction signature", tx);
+  });
+
+  it("Exchange completed!", async () => {
+    // Add your test here.
+    const vault = getAssociatedTokenAddressSync(mintA, escrow, true);
+
+    const tx = await program.methods
+    .take()
+    .accountsPartial({
+      taker: taker.publicKey,
+      maker: maker.publicKey,
+      mintAccountA: mintA,
+      mintAccountB: mintB,
+      escrow,
+      vault: vault,
+      makerAtaB: makerAtaB,
+      takerAtaA: takerAtaA,
+      takerAtaB: takerAtaB,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+    })
+    .signers([taker])
+    .rpc();
+    console.log("Your transaction signature", tx);
+  });
+
+  it("Refund completed!", async () => {
+    // Add your test here.
+    const vault = getAssociatedTokenAddressSync(mintA, escrow, true);
+    const tx = await program.methods
+    .refund()
+    .accountsPartial({
+      maker: maker.publicKey,
+      mintAccountA: mintA,
+      makerAtaA: makerAtaA,
+      escrow,
+      vault: vault,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     })
     .signers([maker])
     .rpc();
